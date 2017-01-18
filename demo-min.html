@@ -97,7 +97,7 @@
           var imgref = document.getElementById('imgcontainer');
 
     //Wait for the image to load //when image is loaded and we know its dimensions, we scale the viewport        
-    imgref.onload = function(){
+    setinitzoom = function(){
         //Get container and image
         //var image = $('.cimage');
         var container = $('.panzoom-parent');
@@ -163,6 +163,10 @@
 
     };
 //}); // $(document).ready(function()
+
+    $(document).ready(function(){
+        imgref.onload = setinitzoom();
+     });
        
       </script>
    
