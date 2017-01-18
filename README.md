@@ -2,6 +2,9 @@
 Reply to the question http://stackoverflow.com/questions/32583854/
 
 
+Panzoom is Qjuery image viewer with zoom: https://github.com/timmywil/jquery.panzoom
+
+
 Download all the repository, open file `demo-min.html` in your browser.
 
 
