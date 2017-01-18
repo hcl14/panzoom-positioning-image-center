@@ -1,0 +1,172 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Panzoom for jQuery</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <script src="timmywil-jquery.panzoom-734dadf/test/libs/jquery.js"></script>
+    <script src="timmywil-jquery.panzoom-734dadf/dist/jquery.panzoom.js"></script>
+    <script src="timmywil-jquery.panzoom-734dadf/test/libs/jquery.mousewheel.js"></script>
+        <!-- Load livereload if not phantom or github -->
+    <script>
+      if ( !window.phantom && !/github/.test(window.location.hostname) ) document.write('<scr' + 'ipt src="http://' + location.hostname + ':35711/livereload.js"></scr' + 'ipt>');
+    </script>
+    
+    <!-- Image view filed with zoom https://timmywil.github.io/jquery.panzoom/  -->
+    <style type="text/css">
+    
+    body, html {height:100%;}
+      
+    /* panzoom wrapper div */
+    #wrapper {
+    padding-left: 0;
+    background: #121212;
+    height:100%;
+    width:100%;
+    overflow: hidden;/*no scrollbars*/
+    border: 0px;
+}
+      
+    
+      body { background: #F5FCFF; color: #333666; }
+      section { text-align: center; height:100%; border: 0px;}
+      .panzoom-parent { border: 0px; height:100%;}
+      .panzoom-parent .panzoom { border: 10px solid #A00; display: inline-block;position: absolute;  top: 0%; left:0% }
+      .buttons { left: 50%;
+                 transform: translateX(-50%);
+                 display: table;
+                 position:fixed;
+                 bottom:0%;   
+                 width: 50%;
+               }
+    </style>
+    
+    
+  </head>
+  <body>
+  
+  <div id="wrapper">
+  
+    <section id="pan-when-zoomed">      
+      <div class="panzoom-parent" id="maincontainer">
+        <div class="panzoom">
+          <img src="xxx003-512.png" class='cimage' id="imgcontainer" style="border: 2px solid #AAA;">
+        </div>
+      </div>
+      <div class="buttons">
+        <button class="zoom-in">Zoom In</button>
+        <button class="zoom-out">Zoom Out</button>
+        <button class="reset">Reset</button>
+        <input type="range" class="zoom-range">        
+      </div>
+      <script>    
+        
+            //typical panzoom setup
+      
+            (function() {
+                var $section = $('#pan-when-zoomed');
+                $section.find('.panzoom').panzoom({
+                    $zoomIn: $section.find(".zoom-in"),
+                    $zoomOut: $section.find(".zoom-out"),
+                    $zoomRange: $section.find(".zoom-range"),
+                    $reset: $section.find(".reset"),
+                    panOnlyWhenZoomed: false,
+                    startTransform: 'scale(1.0)',
+                    minScale: 0.1,
+                    increment: 0.1
+                });
+          // mouse wheel
+                var $panzoom = $section.find('.panzoom').panzoom();
+                $panzoom.parent().on('mousewheel.focal', function( e ) {
+                    e.preventDefault();
+                    var delta = e.delta || e.originalEvent.wheelDelta;
+                    var zoomOut = delta ? delta < 0 : e.originalEvent.deltaY > 0;
+                    $panzoom.panzoom('zoom', zoomOut, {
+                        animate: false,
+                        focal: e
+                    });
+                });
+          
+            })();            
+           
+          
+          //http://stackoverflow.com/questions/26004008/resizing-to-fit-height-jquery-panzoom
+         // $(document).ready(function(){  //buggy on chrome      
+          var $section = $('#pan-when-zoomed');
+          var $panzoom = $section.find('.panzoom').panzoom();
+          var imgref = document.getElementById('imgcontainer');
+
+    //Wait for the image to load //when image is loaded and we know its dimensions, we scale the viewport        
+    imgref.onload = function(){
+        //Get container and image
+        //var image = $('.cimage');
+        var container = $('.panzoom-parent');
+
+        //Get container dimensions
+        /*
+        var container_height = container.height();
+        var container_width = container.width();
+        */
+        
+        var container_height = window.innerHeight;
+        var container_width = window.innerWidth;
+
+        //Get image dimensions
+        var imgref2 = document.getElementById('imgcontainer');
+        //var image_height = image.height();
+        //var image_width = image.width();
+        var image_height = imgref2.height;
+        var image_width = imgref2.width;
+
+        //Calculate the center of image since origin is at x:50% y:50%
+        var image_center_left = image_width / 2.0;
+        var image_center_top = image_height / 2.0;
+
+        //Calculate scaling factor
+        var zoom_factor;
+
+        //Check to determine whether to stretch along width or heigh
+        /*
+        if(image_height > image_width)
+            zoom_factor = container_height / image_height;
+        else
+            zoom_factor = container_width / image_width;
+            */
+        //zoom_factor = container_height / image_height;
+        
+        // I want it to scale according to the biggest dimension
+        var scalefactor_w = container_width/image_width;
+        var scalefactor_h = container_height/image_height;
+        zoom_factor = Math.min(scalefactor_w,scalefactor_h);
+        
+        
+
+        //Zoom by zoom_factor
+        $panzoom.panzoom("zoom", zoom_factor, {animate: false});
+
+        //Calculate new image dimensions after zoom
+        image_width = image_width * zoom_factor;
+        image_height = image_height * zoom_factor;
+
+        //Calculate offset of the image after zoom
+        var image_offset_left = image_center_left - (image_width / 2.0);
+        var image_offset_top = image_center_top - (image_height / 2.0);
+
+        //Calculate desired offset for image
+        var new_offset_left = (container_width - image_width) / 2.0;
+        var new_offset_top = (container_height - image_height) / 2.0;
+
+        //Pan to set desired offset for image
+        var pan_left = new_offset_left - image_offset_left;
+        var pan_top = new_offset_top - image_offset_top;
+        $panzoom.panzoom("pan", pan_left, pan_top);
+
+    };
+//}); // $(document).ready(function()
+       
+      </script>
+   
+ </div>
+
+  </body>
+</html>
