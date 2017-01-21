@@ -39,6 +39,47 @@
                  bottom:0%;   
                  width: 50%;
                }
+               
+               
+               
+               
+    .file-input-wrapper {
+            height: 3em;
+            margin: 0;
+            overflow: hidden;            
+            width: 15em;
+            background-color: #080808;
+            cursor: pointer;
+            
+            left: 0%;            
+            display: table;
+            position:fixed;
+            bottom:0%;   
+        }
+        .file-input-wrapper > input[type="file"] {
+            font-size: 1em;
+            position: absolute;
+            top: 0;
+            right: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .file-input-wrapper > .btn-file-input {
+            /*background-color: #080808;*/
+            border-radius: 0px;
+            /*color: #000;*/
+            display: inline-block;
+            height: 3em;
+            margin: 0 0 0 -1px;
+            padding-left: 0;
+            width: 10em;
+            cursor: pointer;
+        }
+        .file-input-wrapper:hover > .btn-file-input {
+            /*background-color: #080808;*/
+        }
+        
+    
     </style>
     
     
@@ -140,7 +181,7 @@
         zoom_factor = Math.min(scalefactor_w,scalefactor_h);
         
         
-
+        
         //Zoom by zoom_factor
         $panzoom.panzoom("zoom", zoom_factor, {animate: false});
 
@@ -171,6 +212,114 @@
       </script>
    
  </div>
+ 
+<div class="file-input-wrapper" style="text-align:center;">
+        <button class="btn-file-input">Input Image</button>
+        <input type="file" name="image" id="imageinput" value="" accept="image/*" capture="camera" /> 
+</div>  
+ 
+ <script>
+ 
+ //dynamically load images specified by imput dialog
+ 
+    // function that fires event when image size is available. Onload() event works bad for dynamically added content
+    
+    // I've tried a lot of things, so this solution is a good one
+    
+    function getImageSize(img, callback) {
+            var $img = $(img);
+
+            var wait = setInterval(function() {
+                var w = $img[0].naturalWidth,
+                h = $img[0].naturalHeight;
+                if (w && h) {
+                    clearInterval(wait);
+                    callback.apply(this, [w, h]);
+                }
+            }, 30);
+    }
+    
+    
+    // handle file from input dialog
+    var input = document.getElementById('imageinput');
+    input.addEventListener('change', handleFiles);
+
+    function handleFiles(e) {
+        
+        // load image into temporary container, no need to affect #imagecontainer at the moment
+        // garbage collector will handle it at the end
+        var tempimg = new Image();
+    
+        tempimg.src = URL.createObjectURL(e.target.files[0]);
+        
+        
+        // that would not work for dynamically added images!
+        //imgref.onload = setinitzoom();
+            
+        
+        getImageSize($(tempimg), function(width, height) {
+        
+            //alert(width+ ' ' +height);
+            
+            // take out #imagecontainer
+            var imgref = document.getElementById('imgcontainer');
+            
+            // destroying old instance. Unfortunately, this is the only way to get panzoom work really correctly with dynamically loaded images:
+            // https://github.com/timmywil/jquery.panzoom/issues/132
+            var $section = $('#pan-when-zoomed');
+            var panzoom = $section.find('.panzoom').panzoom();
+            
+            panzoom.panzoom("destroy");            
+            delete panzoom;
+            
+            // and then attach new image!
+            imgref.src = tempimg.src;
+            
+            //let it be loading further then, we have obtained dimensions needed by panzoom at the moment
+            
+            
+            // new instance
+            (function() {
+                var $section = $('#pan-when-zoomed');
+                $section.find('.panzoom').panzoom({
+                    $zoomIn: $section.find(".zoom-in"),
+                    $zoomOut: $section.find(".zoom-out"),
+                    $zoomRange: $section.find(".zoom-range"),
+                    $reset: $section.find(".reset"),
+                    panOnlyWhenZoomed: false,
+                    startTransform: 'scale(1.0)',
+                    minScale: 0.1,
+                    increment: 0.1
+                });
+          
+                var $panzoom = $section.find('.panzoom').panzoom();
+                $panzoom.parent().on('mousewheel.focal', function( e ) {
+                    e.preventDefault();
+                    var delta = e.delta || e.originalEvent.wheelDelta;
+                    var zoomOut = delta ? delta < 0 : e.originalEvent.deltaY > 0;
+                    $panzoom.panzoom('zoom', zoomOut, {
+                        animate: false,
+                        focal: e
+                    });
+                });
+          
+            })();
+            
+            // resizing and panning the image
+            setinitzoom(width, height);
+            
+        });
+    }
+    
+    
+  
+ 
+ 
+ 
+ 
+ </script>
+ 
+ 
 
   </body>
 </html>
